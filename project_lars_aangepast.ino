@@ -2,24 +2,22 @@
 #include <SoftwareSerial.h>
 
 // We will use the SoftwareSerial library instead of the Serial library, as this will let us control which pins our MIDI interface is connected to.
-SoftwareSerial mySerial(5, 6); // RX, TX
+SoftwareSerial mySerial(5, 6); // RX, TX , maakt een serieele poort aan op pin 5 en 6
+
 // constants
-
 const int midiSendDelay = 100; // give MIDI-device a short time to "digest" MIDI messages
-byte midiByte;
-byte midiChannel;
-byte midiCommand;
-bool ThereIsSignal;
-bool ThereIsToets;
-bool serprint;
-bool ingedrukt;
-byte toets[2];
-int fadedel=2600;
-int tijddel = 0;
+byte midiByte;                 // De MidiByte dat van de piano komt wordt onder midiByte bewaard
+bool ThereIsSignal;            // Wordt hoog als er een er een signaal is
+bool ThereIsToets;             // Wordt hoog als er een toets is
+bool serprint;                 // Als al de gegevens van een toets zijn aangekomen wordt deze hoog
+bool ingedrukt;                // Is hoog als de toets ingedrukt is en laag als deze niet ingedrukt is
+byte toets[2];                 // De Array met de gegevens van de toets eerste is hoe hard te toets gelagen is en de 2de is de waarde om welke toets het gaat
+int fadedel=2600;              // De tijd dat een toets mag faden
+int tijddel = 0;               // De tijd die wordt gebruikt om te faden
 
-#define PIN 9    //pin van data strip
-#define AANTAL 100  //aantal leds op strip
-#define KNOPPIN 2  //pin nummer van knop
+#define PIN 9                  //pin van data strip
+#define AANTAL 100             //aantal leds op strip
+#define KNOPPIN 2              //pin nummer van knop
   
 // Parameter 1 = number of pixels in strip
 // Parameter 2 = pin number (most are valid)
@@ -96,48 +94,44 @@ char letter[61][11]={
 
 };
 
-
-void setup() {
-  strip.begin();
-  strip.show();
+// Dit loopt maar 1 keer als de arduino opstart
+void setup() { 
+  strip.begin();                        // het beginnen van de led's
+  strip.show();                         // Zet al de Leds op uit
 
    // setup SoftSerial for MIDI control
-    mySerial.begin(31250);
-    Serial.begin(38400);
-    delay(midiSendDelay);
+    mySerial.begin(31250);              // Zorgt dat de serieele communicatie van de middi input op een snelheid van 31250 komt te staan
+    Serial.begin(38400);                // Zet de Serieele communicatie voor het monitoren van het programma op 38400
+    delay(midiSendDelay);               // Wacht even voor een midi signaal 
 }
 
-char i,j,k;
-
+// Dit zal blijven lopen in een loop
 void loop() {
 
 
-
-      // Is there any MIDI waiting to be read?
-
-    if (mySerial.available() > 0) {
+    if (mySerial.available() > 0) {     // kijkt of er een midi signaal aanwezig is 
         // read MIDI byte
 
-        midiByte = mySerial.read();
+        midiByte = mySerial.read();    // Slaagt de serieele byte op in midiByte
         
-        checksignaal(midiByte);
-        Serial.println(midiByte);
+        checksignaal(midiByte);        // Gaat naar de functie checksignaal en geeft de waarde midiByte mee
+        Serial.println(midiByte);      // Print de midi waarde af voor monitoring
 
-        if(serprint){
+        if(serprint){                  // Als al de gegevens van de toets aangekomen zijn ga hierin
           
-            Serial.println(toets[0]);
-           Serial.println(toets[1]);
-            Serial.println(ingedrukt);
-            toets[1] = toets[1]-35;
-              printletter(toets[1],toets[0]);
+            Serial.println(toets[0]);  // Print de hoe hard te toets gelagen waarde af voor monitoring
+            Serial.println(toets[1]);  // Print de toets af voor monitoring
+
+            toets[1] = toets[1]-35;    // De waarde om welke toets het gaat -35 doen  
+            printletter(toets[1],toets[0]); // Zet de leds goed die de letter vormen en geeft ineens de helderheid mee
             
-            strip.show();
-            serprint = LOW;
+            strip.show();              // Laat de Led's aangaan
+            serprint = LOW;            // zet de waardes terug op laag
             ThereIsSignal = LOW;
             ThereIsToets = LOW;         
           } 
              
-    } // mySerial.available()
+    } 
   fadeout();
 
 }
